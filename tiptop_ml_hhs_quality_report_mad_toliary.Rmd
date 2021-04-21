@@ -1,0 +1,229 @@
+```{r parameters, include=FALSE}
+source("tiptop_hhs_quality.R")
+source("tokens.R")
+
+# Data retrieval: {api, file}
+data_retrieval_mode = "api"
+# API
+api_url   = redcap_api_url
+api_token = api_token_mad # TIPTOP HHS Midline Madagascar (MALGACHE)
+non_retrieved_records = c("cluster", "facility")
+# File
+file_prefix = "DATA/DATA_WITH_NO_DUPS/XXX"
+file_content = "_DATA_WITH_NO_DUPS_"
+file_date   ="2018-06-19"
+file_time   ="15:42"
+
+# Study area description
+study_area_id           = 2
+study_area_label        = "Toliary 2"
+study_area_column       = "toliary_2"
+sample_size             = 325
+household_to_be_visited = 2399
+
+data_timestamp = dataTimestamp(data_retrieval_mode, file_date, file_time)
+```
+
+---
+title: "TIPTOP Midline HHS Data Quality Report: MADAGASCAR - TOLIARY 2"
+author: "Máximo Ramírez Robles"
+date: `r data_timestamp`
+output:
+  html_document: default
+  pdf_document: default
+---
+
+<style>
+.main-container{
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.col-container{
+  overflow: auto;
+  position: relative;
+}
+.col-left{
+  float: left;
+  width: 50%;
+}
+.col-left-40{
+  float: left;
+  width: 40%;
+}
+.col-right{
+  float: right;
+  width: 50%;
+}
+.col-bottom{
+  position: absolute;
+  bottom: 0px;
+}
+.big-number{
+  font-size: 95px;
+}
+.medium-number{
+  font-size: 40px;
+}
+.text-center{
+  text-align: center;
+}
+.text-right{
+  text-align: right;
+}
+.text-left{
+  text-align: left;
+}
+.vertical-small-padding{
+  padding: 0 15px 0 15px;
+}
+.minnor-header{
+  font-size: 18px;
+}
+.text-color-medium-value{
+  color: #585859;
+}
+.text-color-big-value{
+  color: #31708f;
+}
+</style>
+
+```{r setup, include=FALSE}
+library(knitr)
+knitr::opts_chunk$set(echo = TRUE, fig.width = 18, fig.height = 7.5)
+
+hhs_data = readData(data_retrieval_mode, file_prefix, file_content, file_date, file_time, api_url, 
+                    api_token, non_retrieved_records)
+hhs_data = hhs_data[hhs_data$district == study_area_id, ]
+
+# Global variables
+last_record_date = lastRecordDate(hhs_data)
+number_of_records = numberOfRecords(hhs_data)
+```
+
+```{r out.width="30px", echo=FALSE}
+knitr::include_graphics("github_icon.png")
+```
+[Report GitHub Repository](https://github.com/maxramirez84/r_tiptop_baseline_hhs_data_quality_report)
+
+## FIELD DATA COLLECTION PROGRESS
+
+The database contains `r number_of_records` records (last record from `r last_record_date`).
+
+Data collection by [MANISA](http://www.manisa.mg).
+
+```{r recruited_women_area, echo=FALSE}
+# Midline dataset adjustments
+# ended_pregnancy variable was removed
+hhs_data$diff_in_days = difftime(hhs_data$interview_date, hhs_data$end_last_pregnancy, units = "days")
+hhs_data$diff_in_months = floor((hhs_data$diff_in_days / 365) * 12)
+hhs_data$ended_pregnancy[hhs_data$diff_in_months > 6] = 0
+hhs_data$ended_pregnancy[hhs_data$diff_in_months <= 6] = 1
+
+
+consented   = numberOfparticipantsWhoConsented(hhs_data)
+recruitment = recruitmentRate(hhs_data, sample_size)
+```
+
+### General Progress
+
+<div class="col-left text-center">
+  Women Interviewed @ `r study_area_label`
+
+  <span class="big-number">`r recruitment`%</span>
+
+  `r consented` / `r sample_size`
+</div>
+
+<div class="col-right text-center">
+</div>
+
+
+```{r visited_households_area, echo=FALSE}
+# visitedHouseholdsArea(hhs_data, household_to_be_visited, sample_size, study_area_label)
+```
+
+<p style="page-break-before: always">
+
+```{r progress_area_1, echo=FALSE}
+progressOfArea(hhs_data, study_area_column, study_area_label, interval = 10, required_visits_mean = 60)
+```
+
+<p style="page-break-before: always">
+
+## STUDY PROFILE
+
+### Profile of `r study_area_label`
+
+```{r trial_profile_area_1, echo=FALSE, results="asis"}
+trialProfileOfArea(hhs_data, study_area_column)
+```
+
+<p style="page-break-before: always">
+
+## DUPLICATES
+
+### Summary of duplicates in `r study_area_label`
+
+```{r duplicates_summary_area_1, echo=FALSE, results="asis"}
+duplicatesSummary(hhs_data, study_area_column)
+```
+
+### Duplicated Households
+Households recorded / interviewed more than once by the same or different field workers. Or same
+household ID used more than once for different interviews.
+
+```{r duplicated_households, echo=FALSE}
+printDuplicatedHouseholds(hhs_data, study_area_column, study_area_label)
+```
+
+### Duplicated Records
+
+Records in which all variables are exactly the same. I.e. records sent more than once.
+
+```{r duplicated_records, echo=FALSE}
+printDuplicatedRecords(hhs_data, study_area_column, study_area_label)
+```
+
+<p style="page-break-before: always">
+
+## MAIN INDICATORS
+
+<span style="color: red"><b>Important:</b></span> These indicators are computed by using raw data. 
+Therefore, data has not passed any verification and/or cleaning process. They should not be used for 
+analysis purposes. They are presented to address any possible data issue.
+
+### SP Indicators
+
+<div class="col-container">
+```{r sp_indicators, echo=FALSE}
+ciptp_knowledge      = cIPTpKnowledgeRate(hhs_data)
+ciptp_administration = cIPTpAdministrationRate(hhs_data)
+
+SPIndicators(hhs_data, study_area_label)
+```
+
+<div class="col-left text-center">
+  <div class="col-container">
+  <span class="minnor-header">SP service provided in `r study_area_label` by CHW (c-IPTp)</span>
+  
+  <div class="col-left col-bottom text-right vertical-small-padding text-color-medium-value">
+  <span class="medium-number">`r ciptp_knowledge`%</span><br/>
+  Women who know
+  </div>
+  <div class="col-right text-left vertical-small-padding text-color-big-value">
+  <span class="big-number">`r ciptp_administration`%</span><br/>
+  Women who took
+  </div>
+  </div>
+  <br/>
+  <div class="col-container">
+  </div>
+</div>
+</div>
+
+### ANC Indicators
+
+```{r anc_indicators, echo=FALSE}
+ANCIndicators(hhs_data, study_area_label)
+```
