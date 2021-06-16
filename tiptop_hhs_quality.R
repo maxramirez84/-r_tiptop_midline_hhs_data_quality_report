@@ -799,6 +799,10 @@ duplicatedHouseholds = function(hhs_data, study_area_column, study_area_label) {
   duplicated_hh = hhs_data[duplicated(id_columns) | duplicated(id_columns, fromLast = T), ]
   rerecorded_hh = duplicated_hh[!(duplicated_hh$record_id %in% duplicated_records$record_id), ]
   
+  # Remove duplicates in which the cluster column is NA
+  duplicated_hh = duplicated_hh[which(!is.na(duplicated_hh[column])), ]
+  rerecorded_hh = rerecorded_hh[which(!is.na(rerecorded_hh[column])), ]
+  
   # Check if there is reused household IDs which are also duplicates
   rerecorded_and_duplicated = intersect(rerecorded_hh[key_columns], 
                                         duplicated_records[key_columns])
