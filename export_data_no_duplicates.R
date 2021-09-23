@@ -36,12 +36,12 @@ renameRecords = function (data, record_ids_to_rename) {
 args = commandArgs(T)
 source          = args[1] = "API"
 api_token       = args[2] = "XXX"
-study_area_1_id = args[3] = "nhamatanda"
-study_area_1    = args[4] = "Nhamatanda"
-study_area_2_id = args[5] = "meconta"
-study_area_2    = args[6] = "Meconta"
-study_area_3_id = args[7] = "murrupula"
-study_area_3    = args[8] = "Murrupula"
+study_area_1_id = args[3] = "ohaukwu"
+study_area_1    = args[4] = "Ohaukwu"
+study_area_2_id = args[5] = "akure_south"
+study_area_2    = args[6] = "Akure South"
+study_area_3_id = args[7] = "bosso"
+study_area_3    = args[8] = "Bosso"
 if(source == "FILE") {
   file_prefix   = args[9]  = "DATA/DATA/TIPTOPHHSMidlineMoza"
   file_content  = args[10] = "_DATA_"
@@ -53,7 +53,7 @@ study_areas_ids = c(study_area_1_id, study_area_2_id, study_area_3_id)
 study_areas     = c(study_area_1, study_area_2, study_area_3)
 
 # Read data set from REDCap by using the provided token
-redcap_api_url = "https://tiptop.isglobal.org/redcap/api/"
+redcap_api_url = "https://maternal.isglobal.org/redcap/api/"
 
 if(source == "API") {
   hhs_data = readData("api", api_url = redcap_api_url, api_token = api_token)
@@ -79,6 +79,15 @@ if(!is.null(only_area))
 
 hhs_data = removeSpecialCharacters(hhs_data, study_areas_ids)
 hhs_data = removeEmptyRecords(hhs_data)
+
+# ENDLINE BULUNGU SPECIFIC: There was an error in cluster selection and there are records that were not from any cluster
+# selected for the Endline. They were allocated in Bulungu and changed the cluster to blank. 
+# We do not want to discard them from REDCap but we have to remove them for this study along with the duplicates. 
+# hhs_data = hhs_data[!(hhs_data$district == 2 & is.na(hhs_data$cluster_bulungu)),]
+
+# Remove Latitude and Longitude to prevent errors as we do not use this data for the study.
+hhs_data$latitude <- NA
+hhs_data$longitude <- NA
 
 # Remove duplicated records (where all variables contain exactly the same values except record_id)
 duplicated_records_1 = duplicatedRecords(hhs_data[hhs_data$district == 1, ], study_areas_ids[1], study_areas[1])
