@@ -148,7 +148,7 @@ numberOfparticipantsWhoConsented = function(hhs_data) {
   consented = table(hhs_data$ended_pregnancy, hhs_data$resident_during_pregnancy)
   
   if(length(consented) > 0)
-    consented = consented[1]
+    consented = consented[, "1"]
   else
     consented = 0 
   
@@ -257,10 +257,10 @@ sameInterview = function(record1, record2) {
   #browser()
   consent1 = record1$consent
   if(is.na(consent1))
-    consent1 = "Not asked"
+    consent1 = language$not.asked
   consent2 = record2$consent
   if(is.na(consent2))
-    consent2 = "Not asked"
+    consent2 = language$not.asked
   gps_distance = NA
   # Compute GPS Haversine distance
   if(!is.na(record1$longitude) & !is.na(record1$latitude) & 
@@ -356,21 +356,8 @@ visitedHouseholdsArea = function(hhs_data, household_to_be_visited, sample_size,
 # Visited Households per Cluster in a concrete Area
 progressOfArea = function(hhs_data, study_area_column, study_area_label, interval, required_visits_mean, lang = 'EN') {
   #browser()
-  EN = c("Visited Households per Cluster in", # 1
-                    "Cluster in",                        # 2
-                    "Number of households",              # 3
-                    "Interviewed",                       # 4
-                    "Visited",                           # 5
-                    "There is no data."                  # 6
-                    )
-  FR = c("Ménages Visités par Grappe à",      # 1
-                    "Grappe à",                          # 2
-                    "Nombre de ménages",                 # 3
-                    "Interviewés",                       # 4
-                    "Visités",                           # 5
-                    "Il n'y a pas des données."          # 6
-                    )
-  strings = data.frame(EN, FR, stringsAsFactors = F)
+
+
   
   column = paste0("cluster_", study_area_column)
   
@@ -384,9 +371,9 @@ progressOfArea = function(hhs_data, study_area_column, study_area_label, interva
     par(cex.lab = 1.5, cex.main = 2, cex.axis = 1.05, mar = c(8, 8, 4, 0))
     visits_progress = barplot(
       height = matrix(c(dat[2,], dat[1,] - dat[2,]), nrow = 2, byrow = T),
-      main   = paste(strings[1, lang], study_area_label),
-      xlab   = paste(strings[2, lang], study_area_label),
-      ylab   = strings[3, lang],
+      main   = sprintf(lang$progress.plot.title, study_area_label),
+      xlab   = sprintf(lang$progress.plot.x, study_area_label),
+      ylab   = sprintf(lang$progress.plot.y),
       ylim   = c(0, max_y_axis),
       axes   = F,
       col = color_palette[2:3],
@@ -395,15 +382,15 @@ progressOfArea = function(hhs_data, study_area_column, study_area_label, interva
     axis(1, visits_progress, paste0("C", rownames(visits_number)), las = 2)
     axis(2, seq(0, max_y_axis, interval))
     abline(h = required_visits_mean, lwd = 1, lty = 2, col = "red")
-    legend("topright", legend = c(strings[4, lang], strings[5, lang]), fill = color_palette[2:3], cex = 1.5)
+    legend("topright", legend = c(lang$progress.plot.s1, lang$progress.plot.s2), fill = color_palette[2:3], cex = 1.5)
     text(x = visits_progress, y = dat[2,], labels = dat[2,], pos = 3, col = color_palette[1])
   } else {
-    print(strings[6, lang]) 
+    print(lang$progress.no.data) 
   }
 }
 
 # Tables -------------------------------------------------------------------------------------------
-trialProfileOfArea = function(hhs_data, study_area_column) {
+trialProfileOfArea = function(hhs_data, study_area_column, lang = 'EN') {
   #browser()
   maximum_number_of_columns = 29
   font_size = 10
@@ -492,23 +479,23 @@ trialProfileOfArea = function(hhs_data, study_area_column) {
       number_hh_head_refused
     )
     row.names(trial_profile) = c(
-      "HH selected visited", 
-      "HH selected interviewed", 
-      "Women of childbearing age",
-      paste0("NON eligible women", footnote_marker_symbol(1, "html")),
-      "Eligible women",
-      "Eligible women selected",
-      "Women interviewed",
-      "Women that interrupted interview",
-      "Women NON interviewed",
-      "Denied signed consent/assent",
-      "Absent",
-      "Not able to respond",
-      "Other reason",
-      "HH selected NOT interviewed",
-      "Empty/destroyed",
-      paste0("HH head not found", footnote_marker_symbol(2, "html")),
-      "HH head/other refused to consent the interview"
+      language$profile.row2, 
+      language$profile.row3, 
+      language$profile.row4,
+      paste0(language$profile.row5, footnote_marker_symbol(1, "html")),
+      language$profile.row6,
+      language$profile.row7,
+      language$profile.row8,
+      language$profile.row9,
+      language$profile.row10,
+      language$profile.row11,
+      language$profile.row12,
+      language$profile.row13,
+      language$profile.row14,
+      language$profile.row15,
+      language$profile.row16,
+      paste0(language$profile.row17, footnote_marker_symbol(2, "html")),
+      language$profile.row18
     )
     colnames(trial_profile) = paste0("C", colnames(trial_profile))
     #browser()
@@ -523,7 +510,7 @@ trialProfileOfArea = function(hhs_data, study_area_column) {
           ifelse(trial_profile[15, i] + trial_profile[17, i] != trial_profile[14, i], "red", ""),
         tooltip  = 
           ifelse(trial_profile[15, i] + trial_profile[17, i] != trial_profile[14, i], 
-                 "NOT interviewed HH must be equal to the sum of empty/destroyed + refused", "")
+                 language$profile.check1, "")
       )
       
       # women = eligible + non_eligible
@@ -534,7 +521,7 @@ trialProfileOfArea = function(hhs_data, study_area_column) {
           ifelse(trial_profile[4, i] + trial_profile[5, i] != trial_profile[3, i], "red", ""),
         tooltip  = 
           ifelse(trial_profile[4, i] + trial_profile[5, i] != trial_profile[3, i], 
-                 "Women must be equal to the sum of eligibles + NON eligibles", "")
+                 language$profile.check2, "")
       )
       
       # non_interviwed women = denied + absent + unabled + other
@@ -547,7 +534,7 @@ trialProfileOfArea = function(hhs_data, study_area_column) {
         tooltip  = 
           ifelse(trial_profile[10, i] + trial_profile[11, i] + trial_profile[12, i] + 
                    trial_profile[13, i]  != trial_profile[9, i], 
-                 "NON interviewed women must be equal to the sum of denied + absent + unabled", "")
+                 language$profile.check3, "")
       )
       
       # women selected = interviewed + interrupted + non_interviewed
@@ -560,7 +547,7 @@ trialProfileOfArea = function(hhs_data, study_area_column) {
         tooltip  = 
           ifelse(trial_profile[7, i] + trial_profile[8, i] + trial_profile[9, i] 
                  != trial_profile[6, i], 
-                 "Women selected must be equal to the sum of interviewed + interrupted + NON interviewed", "")
+                 language$profile.check4, "")
       )
       
       # visited HH = interviewed + non_interviewed
@@ -571,7 +558,7 @@ trialProfileOfArea = function(hhs_data, study_area_column) {
           ifelse(trial_profile[2, i] + trial_profile[14, i] != trial_profile[1, i], "red", ""),
         tooltip  = 
           ifelse(trial_profile[2, i] + trial_profile[14, i] != trial_profile[1, i], 
-                 "Visited HH must be equal to the sum of interviewed + NOT interviewed", "")
+                 language$profile.check5, "")
       )
     }
     #browser()
@@ -593,13 +580,11 @@ trialProfileOfArea = function(hhs_data, study_area_column) {
         row_spec(c(1, 2, 3, 14), bold = T) %>%
         add_indent(c(10, 11, 12, 13)) %>%
         footnote(
-          general_title = "Notes:",
-          general = "Colored cells are consistency errors. Hover over these cells to display a 
-          tooltip with the error message. Please, refer to the provided Data Queries Sheet.", 
+          general_title = language$profile.notes.title,
+          general = language$profile.notes.desc, 
           symbol = c(
-            "Eligible woman: woman that meets selection criteria 1 and selection criteria 2", 
-            "HH head availability is not required to proceed with the interview as long as any other 
-            adult consents"
+            language$profile.note1, 
+            language$profile.note2
           )
         )
       )
@@ -611,19 +596,17 @@ trialProfileOfArea = function(hhs_data, study_area_column) {
         row_spec(c(1, 2, 3, 14), bold = T) %>%
         add_indent(c(10, 11, 12, 13)) %>%
         footnote(
-          general_title = "Notes:",
-          general = "Colored cells are consistency errors. Hover over these cells to display a 
-          tooltip with the error message. Please, refer to the provided Data Queries Sheet.", 
+          general_title = language$profile.notes.title,
+          general = language$profile.notes.desc, 
           symbol = c(
-            "Eligible woman: woman that meets selection criteria 1 and selection criteria 2", 
-            "HH head availability is not required to proceed with the interview as long as any other 
-            adult consents"
+            language$profile.note1, 
+            language$profile.note2
           )
         )
       )
     }
   } else {
-    print("There is no data.")
+    print(language$progress.no.data)
   }
   
 }
@@ -662,17 +645,17 @@ SPIndicators = function(hhs_data, study_areas) {
   sp_adherence = as.data.frame(sp_adherence)
   
   row.names(sp_adherence) = c(
-    "Women interviewed",
-    "Women that took SP",
-    "Women that took exactly 1 dose of SP",
-    "Women that took exactly 2 doses of SP",
-    "Women that took exactly 3 doses of SP",
-    "Women that took exactly 4 doses of SP",
-    "Women that took exactly 5 doses of SP",
-    "Women that took exactly 6 doses of SP",
-    "Women that took more than 6 doses of SP",
-    "Women that didn't take SP",
-    "Women that didn't know if they took SP"
+    language$indicators.sp.row2,
+    language$indicators.sp.row3,
+    language$indicators.sp.row4,
+    language$indicators.sp.row5,
+    language$indicators.sp.row6,
+    language$indicators.sp.row7,
+    language$indicators.sp.row8,
+    language$indicators.sp.row9,
+    language$indicators.sp.row10,
+    language$indicators.sp.row11,
+    language$indicators.sp.row12
   )
   colnames(sp_adherence) = study_area_label
   
@@ -719,16 +702,16 @@ ANCIndicators = function(hhs_data, study_area_label) {
   anc_attendance = as.data.frame(anc_attendance)
   
   row.names(anc_attendance) = c(
-    "Women interviewed",
-    "Women that attended ANC clinic",
-    "Women that attended exactly once to ANC clinic",
-    "Women that attended exactly twice to ANC clinic",
-    "Women that attended exactly 3 times to ANC clinic",
-    "Women that attended exactly 4 times to ANC clinic",
-    "Women that attended exactly 5 times to ANC clinic",
-    "Women that attended exactly 6 times to ANC clinic",
-    "Women that attended more than 6 times to ANC clinic",
-    "Women that didn't attend to ANC clinic"
+    language$indicators.anc.row2,
+    language$indicators.anc.row3,
+    language$indicators.anc.row4,
+    language$indicators.anc.row5,
+    language$indicators.anc.row6,
+    language$indicators.anc.row7,
+    language$indicators.anc.row8,
+    language$indicators.anc.row9,
+    language$indicators.anc.row10,
+    language$indicators.anc.row11
   )
   colnames(anc_attendance) = study_area_label
   
@@ -758,9 +741,9 @@ duplicatedRecords = function(hhs_data, study_area_column, study_area_label) {
     columns]
   
   if(nrow(duplicated_records_summary) > 0) {
-    duplicated_records_summary$consent[is.na(duplicated_records_summary$consent)] = "Not asked"
-    duplicated_records_summary$consent[duplicated_records_summary$consent == 0]   = "No"
-    duplicated_records_summary$consent[duplicated_records_summary$consent == 1]   = "Yes"
+    duplicated_records_summary$consent[is.na(duplicated_records_summary$consent)] = language$not.asked
+    duplicated_records_summary$consent[duplicated_records_summary$consent == 0]   = language$no
+    duplicated_records_summary$consent[duplicated_records_summary$consent == 1]   = language$yes
     
     duplicated_records_summary$district = study_area_label
   }
@@ -773,9 +756,12 @@ printDuplicatedRecords = function(hhs_data, study_areacolumn, study_area_label) 
   duplicated_records_summary = duplicatedRecords(hhs_data, study_area_column, study_area_label)
   
   if(nrow(duplicated_records_summary) > 0) {
-    colnames(duplicated_records_summary) = c("ID", "District", "Cluster", "HH ID", "Latitude", 
-                                             "Longitude", "Head Initials", "Consent", "Int. ID", 
-                                             "Int. Date")
+    colnames(duplicated_records_summary) = c(
+      language$dups.tab.header1, language$dups.tab.header2, language$dups.tab.header3, 
+      language$dups.tab.header4, language$dups.tab.header5, language$dups.tab.header6,
+      language$dups.tab.header7, language$dups.tab.header8, language$dups.tab.header9,
+      language$dups.tab.header10
+    )
     
     kable(duplicated_records_summary, "html", row.names = F, escape = F) %>%
       kable_styling(bootstrap_options = c("striped", "hover", "responsive"), 
@@ -783,7 +769,7 @@ printDuplicatedRecords = function(hhs_data, study_areacolumn, study_area_label) 
       row_spec(0, bold = T, color = "white", background = "#494949") %>%
       scroll_box(height = "250px")
   } else {
-    print("There are no duplicated records.")
+    print(language$dups.no.records)
   }
 }
 
@@ -799,10 +785,6 @@ duplicatedHouseholds = function(hhs_data, study_area_column, study_area_label) {
   duplicated_hh = hhs_data[duplicated(id_columns) | duplicated(id_columns, fromLast = T), ]
   rerecorded_hh = duplicated_hh[!(duplicated_hh$record_id %in% duplicated_records$record_id), ]
   
-  # Remove duplicates in which the cluster column is NA
-  duplicated_hh = duplicated_hh[which(!is.na(duplicated_hh[column])), ]
-  rerecorded_hh = rerecorded_hh[which(!is.na(rerecorded_hh[column])), ]
-  
   # Check if there is reused household IDs which are also duplicates
   rerecorded_and_duplicated = intersect(rerecorded_hh[key_columns], 
                                         duplicated_records[key_columns])
@@ -815,7 +797,11 @@ duplicatedHouseholds = function(hhs_data, study_area_column, study_area_label) {
             duplicated_records$household == rerecorded_and_duplicated$household[i], ][1,])
     }
   }
-    
+   
+  # Remove duplicates in which the cluster column is NA
+  duplicated_hh = duplicated_hh[which(!is.na(duplicated_hh[column])), ]
+  rerecorded_hh = rerecorded_hh[which(!is.na(rerecorded_hh[column])), ]
+  
   if(nrow(rerecorded_hh) == 0)
     return(NULL)
   
@@ -887,21 +873,21 @@ duplicatedHouseholds = function(hhs_data, study_area_column, study_area_label) {
     }
   }
   
-  rerecorded_hh_summary$consent[is.na(rerecorded_hh_summary$consent)] = "Not asked"
-  rerecorded_hh_summary$consent[rerecorded_hh_summary$consent == 0]   = "No"
-  rerecorded_hh_summary$consent[rerecorded_hh_summary$consent == 1]   = "Yes"
+  rerecorded_hh_summary$consent[is.na(rerecorded_hh_summary$consent)] = language$not.asked
+  rerecorded_hh_summary$consent[rerecorded_hh_summary$consent == 0]   = language$no
+  rerecorded_hh_summary$consent[rerecorded_hh_summary$consent == 1]   = language$yes
   
   rerecorded_hh_summary$district = study_area_label
   
-  rerecorded_hh_summary$hh_sex[rerecorded_hh_summary$hh_sex == 0] = "F"
-  rerecorded_hh_summary$hh_sex[rerecorded_hh_summary$hh_sex == 1] = "M"
+  rerecorded_hh_summary$hh_sex[rerecorded_hh_summary$hh_sex == 0] = language$rerecorded.sex1
+  rerecorded_hh_summary$hh_sex[rerecorded_hh_summary$hh_sex == 1] = language$rerecorded.sex2
   
-  rerecorded_hh_summary$hh_available[rerecorded_hh_summary$hh_available == 0] = "No"
-  rerecorded_hh_summary$hh_available[rerecorded_hh_summary$hh_available == 1] = "Yes"
-  rerecorded_hh_summary$hh_available[rerecorded_hh_summary$hh_available == 2] = "Empty HH"
+  rerecorded_hh_summary$hh_available[rerecorded_hh_summary$hh_available == 0] = language$no
+  rerecorded_hh_summary$hh_available[rerecorded_hh_summary$hh_available == 1] = language$yes
+  rerecorded_hh_summary$hh_available[rerecorded_hh_summary$hh_available == 2] = language$rerecorded.empty
   
-  rerecorded_hh_summary$duplicated[rerecorded_hh_summary$duplicated == F] = "F"
-  rerecorded_hh_summary$duplicated[rerecorded_hh_summary$duplicated == T] = "T"
+  rerecorded_hh_summary$duplicated[rerecorded_hh_summary$duplicated == F] = language$rerecorded.dup1
+  rerecorded_hh_summary$duplicated[rerecorded_hh_summary$duplicated == T] = language$rerecorded.dup2
   
   return(rerecorded_hh_summary)
 }
@@ -912,9 +898,14 @@ printDuplicatedHouseholds = function(hhs_data, study_area_column, study_area_lab
   
   if(!is.null(rerecorded_hh_summary)) {
     if(nrow(rerecorded_hh_summary) > 0) {
-      colnames(rerecorded_hh_summary) = c("ID", "District", "C.", "HH ID", "Lat.", "Lng.", 
-                                          "H. Initials", "Sex", "Available", "Cons.", "End Preg.", 
-                                          "Age", "Int. ID", "Int. Date", "D.")
+      colnames(rerecorded_hh_summary) = c(language$rerecorded.dups.h1, language$rerecorded.dups.h2,
+                                          language$rerecorded.dups.h3, language$rerecorded.dups.h4,
+                                          language$rerecorded.dups.h5, language$rerecorded.dups.h6,
+                                          language$rerecorded.dups.h7, language$rerecorded.dups.h8,
+                                          language$rerecorded.dups.h9, language$rerecorded.dups.h10,
+                                          language$rerecorded.dups.h11, language$rerecorded.dups.h12,
+                                          language$rerecorded.dups.h13, language$rerecorded.dups.h14,
+                                          language$rerecorded.dups.h15)
     
       kable(rerecorded_hh_summary, "html", row.names = F, escape = F) %>%
         kable_styling(bootstrap_options = c("striped", "hover", "responsive"), 
@@ -922,10 +913,10 @@ printDuplicatedHouseholds = function(hhs_data, study_area_column, study_area_lab
         row_spec(0, bold = T, color = "white", background = "#494949") %>%
         scroll_box(height = "250px")
     } else {
-      print("There are no duplicated households.")
+      print(language$dups.no.hh)
     }
   } else {
-    print("There are no duplicated households.")
+    print(language$dups.no.hh)
   }
 }
 
@@ -985,14 +976,14 @@ duplicatesSummary = function(hhs_data, study_area_column) {
       rerecorded_hh_interviewed_area
     )
     row.names(duplicates_summary) = c(
-      "NON interviewed HH", 
-      "Interviewed HH", 
-      "Duplicated records in NON interviewed HH",
-      "Duplicated records in interviewed HH",
-      "NON interviewed HH without duplicated records",
-      "Interviewed HH without duplicated records",
-      "Reused HH IDs",
-      "Reused HH IDs in interviewed HH"
+      language$dups.tab.row2,
+      language$dups.tab.row3,
+      language$dups.tab.row4,
+      language$dups.tab.row5,
+      language$dups.tab.row6,
+      language$dups.tab.row7,
+      language$dups.tab.row8,
+      language$dups.tab.row9
     )
     colnames(duplicates_summary) = paste0("C", colnames(duplicates_summary))
     
@@ -1026,10 +1017,10 @@ duplicatesSummary = function(hhs_data, study_area_column) {
         )
       }
     } else {
-      print("There are no duplicates.") 
+      print(language$dups.no.dups) 
     }
   } else {
-    print("There is no data.")
+    print(language$dups.no.data)
   }
 }
 
