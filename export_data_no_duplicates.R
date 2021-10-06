@@ -9,6 +9,11 @@
 
 library(stringr)
 source("tiptop_hhs_quality.R")
+source("lang.R")
+
+# Report language
+kReportLang <- "EN"
+language <- kLang[[kReportLang]]
 
 # Auxiliar functions
 renameRecords = function (data, record_ids_to_rename) {
@@ -63,16 +68,16 @@ if(source == "API") {
 }
   
 # In the Mozambique case, cluster values are scattered in multiple variables. So we need to collapse them
-hhs_data$cluster_nhamatanda[!is.na(hhs_data$district) & hhs_data$district == 1] = 
-   rowSums(hhs_data[!is.na(hhs_data$district) & hhs_data$district == 1, grepl("cluster_", names(hhs_data))], na.rm = T)
-hhs_data$cluster_meconta[!is.na(hhs_data$district) & hhs_data$district == 2] = 
-   rowSums(hhs_data[!is.na(hhs_data$district) & hhs_data$district == 2, grepl("cluster_", names(hhs_data))], na.rm = T)
-hhs_data$cluster_murrupula[!is.na(hhs_data$district) & hhs_data$district == 3] = 
-  rowSums(hhs_data[!is.na(hhs_data$district) & hhs_data$district == 3, grepl("cluster_", names(hhs_data))], na.rm = T)
+#hhs_data$cluster_nhamatanda[!is.na(hhs_data$district) & hhs_data$district == 1] = 
+#   rowSums(hhs_data[!is.na(hhs_data$district) & hhs_data$district == 1, grepl("cluster_", names(hhs_data))], na.rm = T)
+#hhs_data$cluster_meconta[!is.na(hhs_data$district) & hhs_data$district == 2] = 
+#   rowSums(hhs_data[!is.na(hhs_data$district) & hhs_data$district == 2, grepl("cluster_", names(hhs_data))], na.rm = T)
+#hhs_data$cluster_murrupula[!is.na(hhs_data$district) & hhs_data$district == 3] = 
+#  rowSums(hhs_data[!is.na(hhs_data$district) & hhs_data$district == 3, grepl("cluster_", names(hhs_data))], na.rm = T)
 ###
 
 # If we want to produce the final dataset just for a concrete study area
-only_area = 1
+only_area = NULL
 if(!is.null(only_area))
   hhs_data = hhs_data[which(hhs_data$district == only_area), ]
 ###
