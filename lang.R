@@ -273,7 +273,7 @@ kLang <- list(
     progress.plot.hf     = "CS%s",
     progress.no.data     = "Não há dados",
     profile.title        = "PERFIL DE PESQUISA",
-    profile.subtitle1    = "Peril de %s",
+    profile.subtitle1    = "Perfil de %s",
     profile.row2         = "HH selecionado visitado",
     profile.row3         = "HH selecionado entrevistado",
     profile.row4         = "Femmes en âge de procréer",
